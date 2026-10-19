@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>筋力検査・実技評価シート</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#fff; --ink:#2b2a27; --sub:#6b6860; --line:#e3dfd6;
+    --accent:#3d6b5a; --c0:#9a978f; --c1:#c0603d; --c2:#c9973a; --c3:#3d7a5f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto;padding:16px 16px 120px}
+  header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin:8px 0 16px}
+  h1{font-size:1.35rem;margin:0}
+  .progress{font-weight:700;color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .meta .full{grid-column:1/-1}
+  label.f{display:block;font-size:.85rem;color:var(--sub);margin-bottom:4px}
+  input[type=text],input[type=date],textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  .role{display:flex;gap:8px}
+  .role button{flex:1}
+  .item h2{font-size:1.05rem;margin:0 0 2px}
+  .item p{margin:0 0 10px;color:var(--sub);font-size:.92rem}
+  .choices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  button{font:inherit;cursor:pointer}
+  .opt,.role button{padding:10px 4px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:.9rem}
+  .opt.sel[data-v="未確認"]{background:var(--c0);border-color:var(--c0);color:#fff}
+  .opt.sel[data-v="要練習"]{background:var(--c1);border-color:var(--c1);color:#fff}
+  .opt.sel[data-v="概ねできる"]{background:var(--c2);border-color:var(--c2);color:#fff}
+  .opt.sel[data-v="安定してできる"]{background:var(--c3);border-color:var(--c3);color:#fff}
+  .role button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .note{font-size:.88rem;color:var(--sub);border-left:3px solid var(--accent);padding-left:10px}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line)}
+  .bar .in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;gap:8px}
+  .bar button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--accent);font-weight:700}
+  .copy{background:#fff;color:var(--accent)}
+  .send{background:var(--accent);color:#fff}
+  .send:disabled{opacity:.5;cursor:default}
+  #msg{min-height:1.4em;font-size:.9rem;margin-top:8px}
+  @media (max-width:520px){
+    .meta{grid-template-columns:1fr}
+    .choices{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>筋力検査・実技評価シート</h1>
+    <div class="progress" id="progress">0 / 8項目</div>
+  </header>
+
+  <div class="card">
+    <label class="f">評価者区分</label>
+    <div class="role" id="role">
+      <button type="button" data-v="自己評価">受講生（自己評価）</button>
+      <button type="button" data-v="講師評価">講師評価</button>
+    </div>
+    <div class="meta" style="margin-top:12px">
+      <div><label class="f" for="name">受講生名</label><input type="text" id="name" autocomplete="name"></div>
+      <div><label class="f" for="date">評価日</label><input type="date" id="date"></div>
+      <div class="full"><label class="f" for="course">講座名（任意）</label><input type="text" id="course"></div>
+    </div>
+  </div>
+
+  <div id="items"></div>
+
+  <div class="card">
+    <label class="f" for="memo">メモ（気づき・次に練習したいこと）</label>
+    <textarea id="memo"></textarea>
+    <p class="note">点数で合否を決めるためではなく、次に何を練習すべきかを明確にする評価です。</p>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<div class="bar"><div class="in">
+  <button type="button" class="copy" id="copyBtn">評価結果をコピー</button>
+  <button type="button" class="send" id="sendBtn">送信する</button>
+</div></div>
+
+<script>
+// ▼ Apps Scriptをデプロイして得た「ウェブアプリURL」をここに貼る
+const GAS_URL = "ここにウェブアプリURLを貼り付け";
+
+const ITEMS = [
+  ["軽さ","必要以上の圧を加えずに接触できる"],
+  ["スピード・リズム","設定した速度とリズムを維持できる"],
+  ["感覚と解釈の区別","感じたことと推測したことを分けて説明できる"],
+  ["曖昧な反応の扱い","無理に結論を出さず保留できる"],
+  ["条件設定","目的に応じて条件を切り替えられる"],
+  ["順序の比較","検査順序を変え、結果を記録できる"],
+  ["部分と全体","個別反応と複合反応を比較できる"],
+  ["再検査・記録","施術前後を同じ条件で確認できる"]
+];
+const CHOICES = ["未確認","要練習","概ねできる","安定してできる"];
+
+const answers = Array(ITEMS.length).fill(null);
+let role = null;
+const $ = id => document.getElementById(id);
+
+$("date").value = new Date().toLocaleDateString("sv-SE");
+
+// 項目を描画
+$("items").innerHTML = ITEMS.map((it,i)=>`
+  <div class="card item">
+    <h2>${i+1}. ${it[0]}</h2>
+    <p>${it[1]}</p>
+    <div class="choices">
+      ${CHOICES.map(c=>`<button type="button" class="opt" data-i="${i}" data-v="${c}">${c}</button>`).join("")}
+    </div>
+  </div>`).join("");
+
+$("items").addEventListener("click", e=>{
+  const b = e.target.closest(".opt"); if(!b) return;
+  const i = +b.dataset.i;
+  answers[i] = answers[i] === b.dataset.v ? null : b.dataset.v;
+  b.parentElement.querySelectorAll(".opt").forEach(x=>x.classList.toggle("sel", x.dataset.v===answers[i]));
+  $("progress").textContent = `${answers.filter(Boolean).length} / ${ITEMS.length}項目`;
+});
+
+$("role").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  role = b.dataset.v;
+  $("role").querySelectorAll("button").forEach(x=>x.classList.toggle("sel", x===b));
+});
+
+function msg(t, ok){ $("msg").textContent = t; $("msg").style.color = ok ? "var(--c3)" : "var(--c1)"; }
+
+function buildText(){
+  const lines = [
+    `筋力検査・実技評価（${role || "区分未選択"}）`,
+    `受講生：${$("name").value || "-"}　評価日：${$("date").value || "-"}`,
+    $("course").value ? `講座：${$("course").value}` : null,
+    "",
+    ...ITEMS.map((it,i)=>`${i+1}. ${it[0]}：${answers[i] || "未確認"}`),
+    "",
+    `メモ：${$("memo").value || "-"}`
+  ];
+  return lines.filter(l=>l!==null).join("\n");
+}
+
+$("copyBtn").addEventListener("click", async ()=>{
+  try{ await navigator.clipboard.writeText(buildText()); msg("評価結果をコピーしました", true); }
+  catch{ msg("コピーできませんでした（ブラウザの権限を確認してください）"); }
+});
+
+$("sendBtn").addEventListener("click", async ()=>{
+  if(!role) return msg("評価者区分を選んでください");
+  if(!$("name").value.trim()) return msg("受講生名を入力してください");
+  if(answers.some(a=>!a) && !confirm("未選択の項目は「未確認」として送信します。よろしいですか？")) return;
+
+  const data = {
+    role,
+    name: $("name").value.trim(),
+    date: $("date").value,
+    course: $("course").value.trim(),
+    answers: answers.map(a=>a || "未確認"),
+    memo: $("memo").value.trim()
+  };
+  $("sendBtn").disabled = true; msg("送信中…", true);
+  try{
+    const res = await fetch(GAS_URL, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(data)
+    });
+    const r = await res.json();
+    if(!r.ok) throw new Error(r.error || "送信エラー");
+    msg("送信しました。ありがとうございました。", true);
+  }catch(err){
+    msg("送信に失敗しました：" + err.message + "（「評価結果をコピー」で控えを取ってください）");
+  }finally{
+    $("sendBtn").disabled = false;
+  }
+});
+</script>
+</body>
+</html>
