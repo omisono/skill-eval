@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>接触6段階・実技記録</title>
+<title>筋力検査・実技評価シート</title>
 <style>
   :root{
     --bg:#f6f4ef; --card:#fff; --ink:#2b2a27; --sub:#6b6860; --line:#e3dfd6;
-    --accent:#3d6b5a; --accent-soft:#e8efe9; --warn:#c0603d; --ok:#3d7a5f;
+    --accent:#3d6b5a; --c0:#9a978f; --c1:#c0603d; --c2:#c9973a; --c3:#3d7a5f;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -19,152 +19,108 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
   .meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .meta .full{grid-column:1/-1}
-  label.f,.qt{display:block;font-size:.9rem;color:var(--sub);margin-bottom:6px}
-  .qt{color:var(--ink);font-weight:700;font-size:1rem}
+  label.f{display:block;font-size:.85rem;color:var(--sub);margin-bottom:4px}
   input[type=text],input[type=date],textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
-  textarea{min-height:80px;resize:vertical}
+  textarea{min-height:90px;resize:vertical}
+  .role{display:flex;gap:8px}
+  .role button{flex:1}
+  .item h2{font-size:1.05rem;margin:0 0 2px}
+  .item p{margin:0 0 10px;color:var(--sub);font-size:.92rem}
+  .choices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   button{font:inherit;cursor:pointer}
-  .seg{display:flex;gap:8px}
-  .seg button{flex:1}
-  .btn{padding:10px 6px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:.9rem}
-  .btn.sel{background:var(--accent);border-color:var(--accent);color:#fff}
-  .stages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .stage{position:relative;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:.92rem}
-  .stage.cur{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
-  .stage .done{position:absolute;top:6px;right:8px;color:var(--ok);font-size:.8rem;font-weight:700}
-  .stage-title{font-size:1.25rem;margin:0 0 12px;color:var(--accent)}
-  .q{margin-bottom:18px}
-  .choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+  .opt,.role button{padding:10px 4px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:.9rem}
+  .opt.sel[data-v="未確認"]{background:var(--c0);border-color:var(--c0);color:#fff}
+  .opt.sel[data-v="要練習"]{background:var(--c1);border-color:var(--c1);color:#fff}
+  .opt.sel[data-v="概ねできる"]{background:var(--c2);border-color:var(--c2);color:#fff}
+  .opt.sel[data-v="安定してできる"]{background:var(--c3);border-color:var(--c3);color:#fff}
+  .role button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .note{font-size:.88rem;color:var(--sub);border-left:3px solid var(--accent);padding-left:10px}
   .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line)}
   .bar .in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;gap:8px}
   .bar button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--accent);font-weight:700}
   .copy{background:#fff;color:var(--accent)}
   .send{background:var(--accent);color:#fff}
   .send:disabled{opacity:.5;cursor:default}
-  #msg{min-height:1.4em;font-size:.9rem;margin-top:4px}
+  #msg{min-height:1.4em;font-size:.9rem;margin-top:8px}
   @media (max-width:520px){
     .meta{grid-template-columns:1fr}
-    .stages{grid-template-columns:repeat(2,1fr)}
-    .choices{grid-template-columns:1fr 1fr}
+    .choices{grid-template-columns:repeat(2,1fr)}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>接触6段階・実技記録</h1>
-    <div class="progress" id="progress">送信済み 0 / 6段階</div>
+    <h1>筋力検査・実技評価シート</h1>
+    <div class="progress" id="progress">0 / 8項目</div>
   </header>
 
   <div class="card">
-    <span class="f" style="display:block;font-size:.9rem;color:var(--sub);margin-bottom:6px">記録者区分</span>
-    <div class="seg" id="role">
-      <button type="button" class="btn sel" data-v="自己記録">受講生（自己記録）</button>
-      <button type="button" class="btn" data-v="講師記録">講師記録</button>
+    <label class="f">評価者区分</label>
+    <div class="role" id="role">
+      <button type="button" data-v="自己評価">受講生（自己評価）</button>
+      <button type="button" data-v="講師評価">講師評価</button>
     </div>
     <div class="meta" style="margin-top:12px">
       <div><label class="f" for="name">受講生名</label><input type="text" id="name" autocomplete="name"></div>
-      <div><label class="f" for="date">記録日</label><input type="date" id="date"></div>
-      <div><label class="f" for="partner">相手役（任意）</label><input type="text" id="partner"></div>
-      <div><label class="f" for="course">講座名（任意）</label><input type="text" id="course"></div>
+      <div><label class="f" for="date">評価日</label><input type="date" id="date"></div>
+      <div class="full"><label class="f" for="course">講座名（任意）</label><input type="text" id="course"></div>
     </div>
   </div>
 
-  <div class="card">
-    <span class="qt">観察する段階</span>
-    <div class="stages" id="stages"></div>
-  </div>
+  <div id="items"></div>
 
   <div class="card">
-    <h2 class="stage-title" id="stageTitle"></h2>
-
-    <div class="q">
-      <span class="qt">その状態を維持できましたか？</span>
-      <div class="choices" data-key="keep"></div>
-    </div>
-
-    <div class="q">
-      <label class="qt" for="right">右手の指先はどう感じましたか？</label>
-      <textarea id="right" data-field="right"></textarea>
-    </div>
-
-    <div class="q">
-      <label class="qt" for="left">左手の甲はどう感じましたか？</label>
-      <textarea id="left" data-field="left"></textarea>
-    </div>
-
-    <div class="q">
-      <span class="qt">維持している間の感覚の変化</span>
-      <div class="choices" data-key="change"></div>
-    </div>
-
-    <div class="q" style="margin-bottom:0">
-      <label class="qt" for="note">気づいたこと</label>
-      <textarea id="note" data-field="note"></textarea>
-    </div>
+    <label class="f" for="memo">メモ（気づき・次に練習したいこと）</label>
+    <textarea id="memo"></textarea>
+    <p class="note">点数で合否を決めるためではなく、次に何を練習すべきかを明確にする評価です。</p>
     <div id="msg"></div>
   </div>
 </div>
 
 <div class="bar"><div class="in">
-  <button type="button" class="copy" id="copyBtn">この段階の記録をコピー</button>
-  <button type="button" class="send" id="sendBtn">この段階を送信</button>
+  <button type="button" class="copy" id="copyBtn">評価結果をコピー</button>
+  <button type="button" class="send" id="sendBtn">送信する</button>
 </div></div>
 
 <script>
 // ▼ Apps Scriptをデプロイして得た「ウェブアプリURL」をここに貼る
-const GAS_URL = "ここにウェブアプリURLを貼り付け";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbycJmFl41WfKVI7ZUQYh7VLneZsJbXxvRv9WuqQaHoxrtuMqQuH0PPDb_7SEvU2MA8/exec";
 
-const STAGES = ["① 触れない","② 触れた瞬間","③ 置いた瞬間","④ 皮膚表面が少し沈む","⑤ 自分の指先が凹む","⑥ 相手の皮膚が凹む"];
-const OPTS = {
-  keep:   ["維持できた","途中で圧が変わった","接触・位置が変わった","できなかった","未確認"],
-  change: ["強くなった","弱くなった","変わらなかった","変化はあるが説明できない","わからない"]
-};
+const ITEMS = [
+  ["軽さ","必要以上の圧を加えずに接触できる"],
+  ["スピード・リズム","設定した速度とリズムを維持できる"],
+  ["感覚と解釈の区別","感じたことと推測したことを分けて説明できる"],
+  ["曖昧な反応の扱い","無理に結論を出さず保留できる"],
+  ["条件設定","目的に応じて条件を切り替えられる"],
+  ["順序の比較","検査順序を変え、結果を記録できる"],
+  ["部分と全体","個別反応と複合反応を比較できる"],
+  ["再検査・記録","施術前後を同じ条件で確認できる"]
+];
+const CHOICES = ["未確認","要練習","概ねできる","安定してできる"];
 
+const answers = Array(ITEMS.length).fill(null);
+let role = null;
 const $ = id => document.getElementById(id);
-const rec = STAGES.map(()=>({keep:"",change:"",right:"",left:"",note:"",sent:false}));
-let cur = 0, role = "自己記録";
 
 $("date").value = new Date().toLocaleDateString("sv-SE");
 
-// 段階ボタン
-function renderStages(){
-  $("stages").innerHTML = STAGES.map((s,i)=>
-    `<button type="button" class="stage${i===cur?" cur":""}" data-i="${i}">${s}${rec[i].sent?'<span class="done">✓送信済</span>':""}</button>`
-  ).join("");
-  $("progress").textContent = `送信済み ${rec.filter(r=>r.sent).length} / 6段階`;
-}
+// 項目を描画
+$("items").innerHTML = ITEMS.map((it,i)=>`
+  <div class="card item">
+    <h2>${i+1}. ${it[0]}</h2>
+    <p>${it[1]}</p>
+    <div class="choices">
+      ${CHOICES.map(c=>`<button type="button" class="opt" data-i="${i}" data-v="${c}">${c}</button>`).join("")}
+    </div>
+  </div>`).join("");
 
-// 選択肢ボタン
-document.querySelectorAll(".choices").forEach(box=>{
-  const key = box.dataset.key;
-  box.innerHTML = OPTS[key].map(v=>`<button type="button" class="btn" data-v="${v}">${v}</button>`).join("");
-  box.addEventListener("click", e=>{
-    const b = e.target.closest(".btn"); if(!b) return;
-    rec[cur][key] = rec[cur][key] === b.dataset.v ? "" : b.dataset.v;
-    paintChoices();
-  });
-});
-function paintChoices(){
-  document.querySelectorAll(".choices").forEach(box=>{
-    box.querySelectorAll(".btn").forEach(b=>b.classList.toggle("sel", b.dataset.v===rec[cur][box.dataset.key]));
-  });
-}
-
-// 自由記述
-document.querySelectorAll("textarea[data-field]").forEach(t=>{
-  t.addEventListener("input", ()=>{ rec[cur][t.dataset.field] = t.value; });
-});
-
-function loadStage(){
-  $("stageTitle").textContent = STAGES[cur];
-  ["right","left","note"].forEach(k=>$(k).value = rec[cur][k]);
-  paintChoices(); renderStages(); msg("");
-}
-
-$("stages").addEventListener("click", e=>{
-  const b = e.target.closest(".stage"); if(!b) return;
-  cur = +b.dataset.i; loadStage();
+$("items").addEventListener("click", e=>{
+  const b = e.target.closest(".opt"); if(!b) return;
+  const i = +b.dataset.i;
+  answers[i] = answers[i] === b.dataset.v ? null : b.dataset.v;
+  b.parentElement.querySelectorAll(".opt").forEach(x=>x.classList.toggle("sel", x.dataset.v===answers[i]));
+  $("progress").textContent = `${answers.filter(Boolean).length} / ${ITEMS.length}項目`;
 });
 
 $("role").addEventListener("click", e=>{
@@ -173,42 +129,38 @@ $("role").addEventListener("click", e=>{
   $("role").querySelectorAll("button").forEach(x=>x.classList.toggle("sel", x===b));
 });
 
-function msg(t, ok){ $("msg").textContent = t; $("msg").style.color = ok ? "var(--ok)" : "var(--warn)"; }
+function msg(t, ok){ $("msg").textContent = t; $("msg").style.color = ok ? "var(--c3)" : "var(--c1)"; }
 
 function buildText(){
-  const r = rec[cur];
-  return [
-    `接触6段階・実技記録（${role}）`,
-    `受講生：${$("name").value || "-"}　記録日：${$("date").value || "-"}`,
-    $("partner").value ? `相手役：${$("partner").value}` : null,
+  const lines = [
+    `筋力検査・実技評価（${role || "区分未選択"}）`,
+    `受講生：${$("name").value || "-"}　評価日：${$("date").value || "-"}`,
     $("course").value ? `講座：${$("course").value}` : null,
     "",
-    `段階：${STAGES[cur]}`,
-    `維持：${r.keep || "-"}`,
-    `右手の指先：${r.right || "-"}`,
-    `左手の甲：${r.left || "-"}`,
-    `感覚の変化：${r.change || "-"}`,
-    `気づいたこと：${r.note || "-"}`
-  ].filter(l=>l!==null).join("\n");
+    ...ITEMS.map((it,i)=>`${i+1}. ${it[0]}：${answers[i] || "未確認"}`),
+    "",
+    `メモ：${$("memo").value || "-"}`
+  ];
+  return lines.filter(l=>l!==null).join("\n");
 }
 
 $("copyBtn").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(buildText()); msg("この段階の記録をコピーしました", true); }
+  try{ await navigator.clipboard.writeText(buildText()); msg("評価結果をコピーしました", true); }
   catch{ msg("コピーできませんでした（ブラウザの権限を確認してください）"); }
 });
 
 $("sendBtn").addEventListener("click", async ()=>{
+  if(!role) return msg("評価者区分を選んでください");
   if(!$("name").value.trim()) return msg("受講生名を入力してください");
-  const r = rec[cur];
-  if(!r.keep && !r.change && !r.right.trim() && !r.left.trim() && !r.note.trim())
-    return msg("この段階はまだ何も記録されていません");
-  if(r.sent && !confirm("この段階は送信済みです。もう一度送信しますか？")) return;
+  if(answers.some(a=>!a) && !confirm("未選択の項目は「未確認」として送信します。よろしいですか？")) return;
 
   const data = {
-    role, name:$("name").value.trim(), date:$("date").value,
-    partner:$("partner").value.trim(), course:$("course").value.trim(),
-    stage:STAGES[cur], keep:r.keep, right:r.right.trim(), left:r.left.trim(),
-    change:r.change, note:r.note.trim()
+    role,
+    name: $("name").value.trim(),
+    date: $("date").value,
+    course: $("course").value.trim(),
+    answers: answers.map(a=>a || "未確認"),
+    memo: $("memo").value.trim()
   };
   $("sendBtn").disabled = true; msg("送信中…", true);
   try{
@@ -217,20 +169,15 @@ $("sendBtn").addEventListener("click", async ()=>{
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body: JSON.stringify(data)
     });
-    const out = await res.json();
-    if(!out.ok) throw new Error(out.error || "送信エラー");
-    r.sent = true;
-    const next = rec.findIndex(x=>!x.sent);
-    if(next >= 0 && next !== cur){ cur = next; loadStage(); msg(`送信しました。次は ${STAGES[cur]} です。`, true); }
-    else { renderStages(); msg(next < 0 ? "6段階すべて送信しました。お疲れさまでした。" : "送信しました。", true); }
+    const r = await res.json();
+    if(!r.ok) throw new Error(r.error || "送信エラー");
+    msg("送信しました。ありがとうございました。", true);
   }catch(err){
-    msg("送信に失敗しました：" + err.message + "（「この段階の記録をコピー」で控えを取ってください）");
+    msg("送信に失敗しました：" + err.message + "（「評価結果をコピー」で控えを取ってください）");
   }finally{
     $("sendBtn").disabled = false;
   }
 });
-
-loadStage();
 </script>
 </body>
 </html>
